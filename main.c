@@ -127,9 +127,14 @@ void* get_page(Pager* pager, uint32_t page_num)
 
         if(page_num <= num_pages){
             lseek(pager->file_descriptor, page_num * PAGE_SIZE, SEEK_SET);
-            
+            ssize_t bytes_read = read(pager->file_descriptor, page, PAGE_SIZE);
+            if(bytes_read == -1){
+                printf("Error reading file: %d\n", errno);
+                return NULL;
+            }
         }
 
+        pager->pages[page_num] = page;
     }
 
     return pager->pages[page_num];
@@ -138,12 +143,8 @@ void* get_page(Pager* pager, uint32_t page_num)
 void* row_slot(Table* table, uint32_t row_num)
 {
     uint32_t page_num = row_num / ROWS_PER_PAGE;
-    void* page = table->pages[page_num];
-    if(page == NULL)
-    {
-        // Allocate memory only when we try to access page
-        page = table->pages[page_num] = malloc(PAGE_SIZE);
-    }
+    
+    void* page = get_page(table->pager, page_num);
     uint32_t row_offset = row_num % ROWS_PER_PAGE;
     uint32_t bytes_offset = row_offset * ROW_SIZE;
     return page + bytes_offset;
@@ -246,6 +247,29 @@ Table* db_open(const char* filename){
     table->num_rows = num_rows;
 
     return table;
+}
+
+void db_close(Table* table)
+{
+    Pager* pager = table->pager;
+    uint32_t num_full_pages = table->num_rows % ROWS_PER_PAGE;
+
+    for(uint32_t i = 0; i < num_full_pages; i++)
+    {
+        if(pager->pages[i] == NULL){
+            continue;
+        }
+        pager_flush(pager, i, PAGE_SIZE);
+        free(pager->pages[i]);
+        pager->pages[i] = NULL;
+    }
+
+    uint32_t num_additional_rows = table->rows % ROWS_PER_PAGE;
+    if(num_additional_rows > 0)
+    {
+
+    }
+    
 }
 
 void free_table(Table* table){
