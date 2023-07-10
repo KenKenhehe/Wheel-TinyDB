@@ -4,9 +4,6 @@
 #include "backend.h"
 #include "sql_parser.h"
 
-void print_row(Row* row) {
-  printf("(%d, %s, %s)\n", row->id, row->user_name, row->email);
-}
 
 void close_buffer(InputBuffer* input_buffer){
     free(input_buffer->buffer);
@@ -54,7 +51,6 @@ int main(int argc, char* argv[])
     {
         print_prompt();
         read_input(current_buffer);
-
         parse_meta_command(current_buffer, table);
 
         Statement statement;

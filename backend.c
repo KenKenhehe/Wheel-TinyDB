@@ -1,5 +1,36 @@
 #include "backend.h"
 
+void print_row(Row* row) 
+{
+  printf("(%d, %s, %s)\n", row->id, row->user_name, row->email);
+}
+
+Cursor* table_start(Table* table)
+{
+    Cursor* cursor = malloc(sizeof(Cursor));
+    cursor->table = table;
+    cursor->row_num = 0;
+    cursor->end_of_table = (table->num_rows == 0);
+    return cursor;
+}
+
+Cursor* table_end(Table* table)
+{
+    Cursor* cursor = malloc(sizeof(Cursor));
+    cursor->table = table;
+    cursor->row_num = table->num_rows;
+    cursor->end_of_table = true;
+    return cursor;
+}
+
+void cursor_advance(Cursor* cursor)
+{
+    cursor->row_num+=1;
+    if(cursor->row_num >= cursor->table->num_rows){
+        cursor->end_of_table = true;
+    }
+}
+
 void serialize_row(Row* source, void* destination)
 {
     memcpy(destination + ID_OFFSET, &(source->id), ID_SIZE);
@@ -17,10 +48,13 @@ ExecuteResult execute_insert(Statement* statement, Table* table)
 {
     if(table->num_rows > TABLE_MAX_ROWS)
     {
-        EXECUTE_TABLE_FULL;
+        return EXECUTE_TABLE_FULL;
     }
+
+    Cursor* cursor = table_end(table);
+
     Row* row_to_insert = &(statement->row_to_insert);
-    serialize_row(row_to_insert, row_slot(table, table->num_rows));
+    serialize_row(row_to_insert, cursor_value(cursor));
     table->num_rows += 1;
 
     return EXECUTE_SUCCESS;
@@ -29,11 +63,16 @@ ExecuteResult execute_insert(Statement* statement, Table* table)
 ExecuteResult execute_select(Statement* statement, Table* table)
 {
     Row row;
-    for (uint32_t i = 0; i < table->num_rows; ++i)
+    Cursor* cursor = table_start(table);
+
+    while(!(cursor->end_of_table))
     {
-        deserialize_row(row_slot(table, i), &row);
+        deserialize_row(cursor_value(cursor), &row);
         print_row(&row);
+        cursor_advance(cursor);
     }
+
+    free(cursor);
 
     return EXECUTE_SUCCESS;
 }
@@ -71,7 +110,8 @@ void* get_page(Pager* pager, uint32_t page_num)
         void* page = malloc(PAGE_SIZE);
         uint32_t num_pages = pager->file_length / PAGE_SIZE;
 
-        if(pager->file_length % PAGE_SIZE){
+        if(pager->file_length % PAGE_SIZE)
+        {
             num_pages += 1;
         }
 
@@ -89,6 +129,16 @@ void* get_page(Pager* pager, uint32_t page_num)
     }
 
     return pager->pages[page_num];
+}
+
+void* cursor_value(Cursor* cursor)
+{
+    uint32_t page_num = cursor->row_num / ROWS_PER_PAGE;
+    
+    void* page = get_page(cursor->table->pager, page_num);
+    uint32_t row_offset = cursor->row_num % ROWS_PER_PAGE;
+    uint32_t bytes_offset = row_offset * ROW_SIZE;
+    return page + bytes_offset;
 }
 
 void* row_slot(Table* table, uint32_t row_num)

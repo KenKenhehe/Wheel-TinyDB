@@ -10,6 +10,10 @@ PrepareResult prepare_statement(InputBuffer* input_buffer, Statement* statement)
         statement->statement_type = STATEMENT_SELECT;
         return PREPARE_SUCCESS;
     }
+    else
+    {
+        return PREPARE_UNRECOGNIZE_STATEMENT;
+    }
 }
 
 PrepareResult prepare_insert(InputBuffer* input_buffer, Statement* statement)

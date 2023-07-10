@@ -14,6 +14,8 @@
 #define COLUMN_EMAIL_SIZE 256
 #define TABLE_MAX_PAGES 100
 
+
+
 typedef struct 
 {
     uint32_t id;
@@ -57,7 +59,8 @@ typedef enum {
 
 typedef enum{
     STATEMENT_INSERT,
-    STATEMENT_SELECT
+    STATEMENT_SELECT,
+    STATENEBT_UNKNOWN
 }StatementType;
 
 typedef struct
@@ -85,6 +88,9 @@ typedef struct{
     Pager* pager;
 }Table;
 
-
-
+typedef struct{
+    Table* table;
+    uint32_t row_num;
+    bool end_of_table;
+}Cursor;
 #endif
