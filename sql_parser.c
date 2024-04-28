@@ -1,4 +1,10 @@
 #include "sql_parser.h"
+
+//For printing tree constant
+#include "btree.h"
+
+//For closing DB
+#include "file_util.h"
 PrepareResult prepare_statement(InputBuffer* input_buffer, Statement* statement)
 {
     printf("input buffer: %s, \n", input_buffer->buffer);
@@ -26,7 +32,7 @@ PrepareResult prepare_insert(InputBuffer* input_buffer, Statement* statement)
     char* username = strtok(NULL, " ");
     char* email = strtok(NULL, " ");
 
-    if(id_str == NULL || username == NULL || email == NULL)
+    if(id_str == NULL || username == NULL || email == NULL || keyword == NULL)
     {
         return PREPARE_SYNTAX_ERROR;
     }
@@ -58,6 +64,11 @@ MetaCommandResult parse_meta_command(InputBuffer* input_buffer, Table* table)
         db_close(table);
         printf("Exit DB\n");
         exit(1);
+        return META_COMMAND_SUCCESS;
+    }
+    else if(strcmp(input_buffer->buffer, "constant") == 0)
+    {
+        print_constants();
         return META_COMMAND_SUCCESS;
     }
     else

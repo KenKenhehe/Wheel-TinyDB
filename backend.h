@@ -18,5 +18,8 @@ void cursor_advance(Cursor* cursor);
 Cursor* table_start(Table* table);
 Cursor* table_end(Table* table);
 
+//Return the position(Cursor pointing to) of the key
+Cursor* table_find(Table* table, uint32_t key);
+
 
 #endif 

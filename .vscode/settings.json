@@ -2,6 +2,16 @@
     "C_Cpp.errorSquiggles": "disabled",
     "files.associations": {
         "btree.h": "c",
-        "db_datatype.h": "c"
+        "db_datatype.h": "c",
+        "stdio.h": "c",
+        "xlocale": "c",
+        "chrono": "c",
+        "complex": "c",
+        "functional": "c",
+        "optional": "c",
+        "system_error": "c",
+        "type_traits": "c",
+        "xlocmon": "c",
+        "xtr1common": "c"
     }
 }
