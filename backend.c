@@ -12,9 +12,9 @@ Cursor* table_start(Table* table)
     cursor->table = table;
     cursor->page_num = table->root_page_num;
     cursor->cell_num = 0;
-
     void* root_node = get_page(table->pager, table->root_page_num);
     uint32_t num_cells = *leaf_node_num_cells(root_node);
+
     cursor->end_of_table = (num_cells == 0); 
 
     return cursor;
@@ -51,7 +51,6 @@ Cursor* table_find(Table* table, uint32_t key)
 
 void* cursor_value(Cursor* cursor)
 {
-
     uint32_t page_num = cursor->page_num;
     void* page = get_page(cursor->table->pager, page_num);
     return leaf_node_value(page, cursor->cell_num);
@@ -84,20 +83,23 @@ void deserialize_row(void* source, Row* destination) {
 ExecuteResult execute_insert(Statement* statement, Table* table)
 {
     void* node = get_page(table->pager, table->root_page_num);
-    uint32_t num_cell = (*leaf_node_num_cells(node));
-    if (num_cell >= LEAF_NODE_MAX_CELLS))
-    {
-        return EXECUTE_TABLE_FULL;
-    }
+    uint32_t num_cells = (*leaf_node_num_cells(node));
 
-    Cursor* cursor = table_end(table);
     Row* row_to_insert = &(statement->row_to_insert);
+    uint32_t key_to_insert = row_to_insert->id;
+    Cursor* cursor = table_find(table, key_to_insert);
 
-    uint32_t id = row_to_insert->id;
+    if(cursor->cell_num < num_cells)
+    {
+        uint32_t key_at_index = *leaf_node_key(node, cursor->cell_num);
+        if(key_at_index == key_to_insert)
+        {
+            return EXECUTE_DUPLICATE_KEY;
+        }
+    }
 
     leaf_node_insert(cursor, row_to_insert->id, row_to_insert);
     free(cursor);
-
     return EXECUTE_SUCCESS;
 }
 
@@ -127,7 +129,6 @@ ExecuteResult execute_sql_command(Statement* statement, Table* table){
     
     case STATEMENT_SELECT:
         printf("Executing SELECT...\n");
-
         return execute_select(statement, table);
 
     default:

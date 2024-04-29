@@ -34,7 +34,13 @@ void print_constants() {
     printf("LEAF_NODE_MAX_CELLS: %d\n", LEAF_NODE_MAX_CELLS);
 }
 
-void leaf_node_insert(Cursor* cursor, uint32_t* key, Row* value)
+void leaf_node_split_and_insert(Cursor* cursor, uint32_t key, Row* value)
+{
+
+}
+
+
+void leaf_node_insert(Cursor* cursor, uint32_t key, Row* value)
 {
     printf("Inserting node... \n");
     void* node = get_page(cursor->table->pager, cursor->page_num);
@@ -43,8 +49,11 @@ void leaf_node_insert(Cursor* cursor, uint32_t* key, Row* value)
     if(num_cells >= LEAF_NODE_MAX_CELLS)
     {
       //Node full
-      printf("Need to implement node insert here");
-      exit(EXIT_FAILURE);
+        printf("Implement node insert here");
+
+
+        leaf_node_split_and_insert(cursor, key, value);
+        return;
     }
 
     if(cursor->cell_num < num_cells)

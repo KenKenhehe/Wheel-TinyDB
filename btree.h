@@ -45,7 +45,14 @@ void* leaf_node_value(void* node, uint32_t cell_num);
 
 void initialize_leaf_node(void* node);
 
-void leaf_node_insert(Cursor* cursor, uint32_t* key, Row* value);
+void leaf_node_insert(Cursor* cursor, uint32_t key, Row* value);
+
+/*
+  Create a new node and move half the cells over.
+  Insert the new value in one of the two nodes.
+  Update parent or create a new parent.
+*/
+void leaf_node_split_and_insert(Cursor* cursor, uint32_t key, Row* value);
 
 Cursor* leaf_node_find(Table* table, uint32_t page_num, uint32_t key);
 

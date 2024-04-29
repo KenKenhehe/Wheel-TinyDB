@@ -116,7 +116,6 @@ void* get_page(Pager* pager, uint32_t page_num)
             pager->num_pages = page_num + 1;
         }
     }
-
     return pager->pages[page_num];
 }
 
